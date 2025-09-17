@@ -42,12 +42,12 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);  // 建立MFRC522物件
 /*============setup============*/
 void setup() {
     // bluetooth initialization
-    Serial1.begin(9600);
+    // Serial1.begin(9600);
     // Serial window
     Serial.begin(9600);
     // RFID initial
-    SPI.begin();
-    mfrc522.PCD_Init();
+    // SPI.begin();
+    // mfrc522.PCD_Init();
     // TB6612 pin
     pinMode(MotorL_I1, OUTPUT);
     pinMode(MotorL_I2, OUTPUT);

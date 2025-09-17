@@ -12,8 +12,8 @@ int extern _Tp;
 #include "track.h"
 // TODO: add some function to control your car when encounter a node
 // here are something you can try: left_turn, right_turn... etc.
-double x = 2;
-double adj_R = 0.49, adj_L = 1;
+double x = 2;  //time constant for motor speed
+double adj_R = 0.49, adj_L = 1;  //motor speed correction coefficient
 
 void car_front(){
     MotorWriting(adj_L*_Tp*x, adj_R*_Tp*x);
