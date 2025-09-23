@@ -12,6 +12,9 @@
 #include <MFRC522.h>
 #include <SPI.h>
 
+// for bluetooth logger
+#include "logger.h"
+
 /*===========================define pin & create module object================================*/
 // BlueTooth
 // BT connect to Serial1 (Hardware Serial)
@@ -36,16 +39,19 @@
 // RFID, 請按照自己車上的接線寫入腳位
 #define RST_PIN 0                 // 讀卡機的重置腳位
 #define SS_PIN 0                  // 晶片選擇腳位
+#define CTL_LOOP_PERIOD 10        // 100 Hz
 MFRC522 mfrc522(SS_PIN, RST_PIN); // 建立MFRC522物件
+uint64_t poweron_time;
+logger btlog(Serial3, "car");
 /*===========================define pin & create module object===========================*/
 
 /*============setup============*/
 void setup()
 {
     // bluetooth initialization
-    Serial1.begin(9600);
+    Serial3.begin(9600);
     // Serial window
-    Serial.begin(9600);
+    Serial.begin(115200);
     // RFID initial
     SPI.begin();
     mfrc522.PCD_Init();
@@ -62,7 +68,12 @@ void setup()
     pinMode(IRpin_M, INPUT);
     pinMode(IRpin_R, INPUT);
     pinMode(IRpin_RR, INPUT);
+
+    btlog.setLevel(LOG_DEBUG);
+    btlog.setMirror(&Serial);
+    poweron_time = millis();
 #ifdef DEBUG
+    btlog.debug("Start!");
     Serial.println("Start!");
 #endif
 }
@@ -73,44 +84,32 @@ void setup()
 #include "bluetooth.h"
 #include "node.h"
 #include "track.h"
-#include "logger.h"
+#include "ir.h"
+#include "fsm.h"
 /*=====Import header files=====*/
 
 /*===========================initialize variables===========================*/
 int l2 = 0, l1 = 0, m0 = 0, r1 = 0, r2 = 0; // 紅外線模組的讀值(0->white,1->black)
 int _Tp = 90;                               // set your own value for motor power
-bool state = false;                         // set state to false to halt the car, set state to true to activate the car
-logger btlog(Serial3, "car");
-btlog.setLevel(LOG_DEBUG);
-btlog.setMirror(&Serial); // also echo formatted frames over USB for debug
-                          // enum for bluetooth message, reference in bluetooth.h line 2
+FSM_State state = STATE_NODE;               // set state to false to halt the car, set state to true to activate the car
+FSM fsm;
 /*===========================initialize variables===========================*/
-
-/*===========================declare function prototypes===========================*/
-void Search();   // search graph
-void SetState(); // switch the state
-/*===========================declare function prototypes===========================*/
 
 /*===========================define function===========================*/
 void loop()
 {
-    if (!state)
-        MotorWriting(0, 0);
-    else
-        Search();
-    SetState();
-}
-
-void SetState()
-{
-    // TODO:
-    // 1. Get command from bluetooth
-    // 2. Change state if need
-}
-
-void Search()
-{
-    // TODO: let your car search graph(maze) according to bluetooth command from computer(python
-    // code)
+    if (millis() - poweron_time >= CTL_LOOP_PERIOD)
+    {
+        // Control loop code here
+        if (millis() - poweron_time >= CTL_LOOP_PERIOD * 2)
+        {
+            Serial.print("Control loop overrun!");
+            Serial.print(uint32_t(millis() - poweron_time));
+            Serial.println(" ms");
+        }
+        poweron_time = millis();
+        state = fsm.getState();
+        fsm.doRoutine();
+    }
 }
 /*===========================define function===========================*/
