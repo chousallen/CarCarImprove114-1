@@ -13,7 +13,7 @@ int extern _Tp;
 // TODO: add some function to control your car when encounter a node
 // here are something you can try: left_turn, right_turn... etc.
 double x = 2;  //time constant for motor speed
-double adj_R = 0.49, adj_L = 1;  //motor speed correction coefficient
+double adj_R = 1, adj_L = 0.9;  //motor speed correction coefficient
 
 void car_front(){
     MotorWriting(adj_L*_Tp*x, adj_R*_Tp*x);

@@ -26,23 +26,23 @@ void MotorWriting(double vL, double vR) {
     if(vL <= -255) vL = -255;
 
     if(vR < 0){
-        digitalWrite(MotorR_I3, LOW);
-        digitalWrite(MotorR_I4, HIGH);
+        digitalWrite(MotorR_I3, HIGH);
+        digitalWrite(MotorR_I4, LOW);
         vR = -vR; 
     }
     else{
-        digitalWrite(MotorR_I3, HIGH);
-        digitalWrite(MotorR_I4, LOW);   
+        digitalWrite(MotorR_I3, LOW);
+        digitalWrite(MotorR_I4, HIGH);   
     }
 
     if(vL < 0){
-        digitalWrite(MotorL_I1, LOW);
-        digitalWrite(MotorL_I2, HIGH);
+        digitalWrite(MotorL_I1, HIGH);
+        digitalWrite(MotorL_I2, LOW);
         vL = -vL; 
     }
     else if(vL >= 0){
-        digitalWrite(MotorL_I1, HIGH);
-        digitalWrite(MotorL_I2, LOW);
+        digitalWrite(MotorL_I1, LOW);
+        digitalWrite(MotorL_I2, HIGH);
     }
 
     analogWrite(MotorL_PWML, vL);
@@ -63,7 +63,7 @@ void tracking(int l2, int l1, int m0, int r1, int r2) {
     double _Kp = 45;  // p term parameter
     double _Kd = 25;  // d term parameter (optional)
     //double _Ki;  // i term parameter (optional) (Hint: 不要調太大)
-    double adj_R = 0.49, adj_L = 1;  // 馬達轉速修正係數。MotorWriting(_Tp,_Tp)如果歪掉就要用參數修正。
+    double adj_R = 1, adj_L = 0.9;  // 馬達轉速修正係數。MotorWriting(_Tp,_Tp)如果歪掉就要用參數修正。
     double x = 2;
 
     if((l2+l1+m0+r1+r2)!=0){
