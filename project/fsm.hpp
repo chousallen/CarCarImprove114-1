@@ -9,6 +9,8 @@ enum FSM_State
     STATE_R_TURN,
     STATE_L_TURN,
     STATE_U_TURN,
+    STATE_STOP,
+    STATE_START
 };
 
 class FSM
@@ -19,6 +21,7 @@ class FSM
         FSM_State getState();
     private:
         FSM_State state;
+        unsigned long enterStateTime;
         void exitState();
         void enterState(FSM_State newState);
 };

@@ -18,6 +18,7 @@ void loop()
 {
     if (millis() - poweron_time >= CTL_LOOP_PERIOD) {
         poweron_time = millis();
+        fsm.doRoutine();
         // Control loop code here
         if(millis() - poweron_time >= CTL_LOOP_PERIOD)
         {

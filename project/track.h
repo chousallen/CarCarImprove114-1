@@ -14,7 +14,14 @@
 #define TRACK_H
 
 /*===========================import variable===========================*/
-int extern _Tp;
+int _Tp = 60; 
+
+#define MotorL_I1 5     // 定義 A1 接腳（左）
+#define MotorL_I2 6     // 定義 A2 接腳（左）
+#define MotorL_PWML 11  // 定義 ENA (PWM調速) 接腳
+#define MotorR_I3 2     // 定義 B1 接腳（右）
+#define MotorR_I4 3     // 定義 B2 接腳（右）
+#define MotorR_PWMR 12  // 定義 ENB (PWM調速) 接腳
 /*===========================import variable===========================*/
 
 // Write the voltage to motor.
