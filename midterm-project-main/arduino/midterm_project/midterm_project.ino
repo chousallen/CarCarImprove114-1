@@ -100,16 +100,15 @@ void loop()
 {
     if (millis() - poweron_time >= CTL_LOOP_PERIOD)
     {
+        poweron_time = millis();
+        fsm.doRoutine();
         // Control loop code here
-        if (millis() - poweron_time >= CTL_LOOP_PERIOD * 2)
+        if (millis() - poweron_time >= CTL_LOOP_PERIOD)
         {
             Serial.print("Control loop overrun!");
             Serial.print(uint32_t(millis() - poweron_time));
             Serial.println(" ms");
         }
-        poweron_time = millis();
-        state = fsm.getState();
-        fsm.doRoutine();
     }
 }
 /*===========================define function===========================*/

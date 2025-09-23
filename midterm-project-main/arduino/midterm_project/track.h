@@ -10,35 +10,91 @@
 /*check out what you have learned from week 1 & 6*/
 /*feel free to add your own function for convenience*/
 
+#ifndef TRACK_H
+#define TRACK_H
+
 /*===========================import variable===========================*/
 int extern _Tp;
 /*===========================import variable===========================*/
 
 // Write the voltage to motor.
-void MotorWriting(double vL, double vR) {
+void MotorWriting(double vL, double vR)
+{
     // TODO: use TB6612 to control motor voltage & direction
-}  // MotorWriting
+    if (vR >= 255)
+        vR = 255;
+    if (vL >= 255)
+        vL = 255;
+    if (vR <= -255)
+        vR = -255;
+    if (vL <= -255)
+        vL = -255;
+
+    if (vR < 0)
+    {
+        digitalWrite(MotorR_I3, HIGH);
+        digitalWrite(MotorR_I4, LOW);
+        vR = -vR;
+    }
+    else
+    {
+        digitalWrite(MotorR_I3, LOW);
+        digitalWrite(MotorR_I4, HIGH);
+    }
+
+    if (vL < 0)
+    {
+        digitalWrite(MotorL_I1, HIGH);
+        digitalWrite(MotorL_I2, LOW);
+        vL = -vL;
+    }
+    else
+    {
+        digitalWrite(MotorL_I1, LOW);
+        digitalWrite(MotorL_I2, HIGH);
+    }
+
+    analogWrite(MotorL_PWML, vL);
+    analogWrite(MotorR_PWMR, vR);
+} // MotorWriting
 
 // Handle negative motor_PWMR value.
-void MotorInverter(int motor, bool& dir) {
+void MotorInverter(int motor, bool &dir)
+{
     // Hint: the value of motor_PWMR must between 0~255, cannot write negative value.
-}  // MotorInverter
+} // MotorInverter
 
 // P/PID control Tracking
-void tracking(int l2, int l1, int m0, int r1, int r2) {
-    // TODO: find your own parameters!
-    double _w0;  //
-    double _w1;  //
-    double _w2;  //
-    double _Kp;  // p term parameter
-    double _Kd;  // d term parameter (optional)
-    double _Ki;  // i term parameter (optional) (Hint: 不要調太大)
-    double error = l2 * _w2 + l1 * _w1 + m0 * _w0 + r1 * (-_w1) + r2 * (-_w2);
-    double vR, vL;  // 馬達左右轉速原始值(從PID control 計算出來)。Between -255 to 255.
-    double adj_R = 1, adj_L = 1;  // 馬達轉速修正係數。MotorWriting(_Tp,_Tp)如果歪掉就要用參數修正。
+void tracking(int l2, int l1, int m0, int r1, int r2)
+{
+    // TODO: find your own parameters!(Done)
+    static double _w0 = 0;  //
+    static double _w1 = 1;  //
+    static double _w2 = 2;  //
+    static double _Kp = 15; // p term parameter
+    static double _Kd = 10; // d term parameter (optional)
+    // double _Ki;  // i term parameter (optional) (Hint: 不要調太大)
+    static double adj_R = 1;
+    static double adj_L = 0.9; // 馬達轉速修正係數。MotorWriting(_Tp,_Tp)如果歪掉就要用參數修正。
+    static double x = 2;
 
-    // TODO: complete your P/PID tracking code
+    if ((l2 + l1 + m0 + r1 + r2) != 0)
+    {
+        double error = l2 * _w2 + l1 * _w1 + m0 * _w0 + r1 * (-_w1) + r2 * (-_w2);
+        static double lastError;
+        double dError = error - lastError;
+        double vR, vL; // 馬達左右轉速原始值(從PID control 計算出來)。Between -255 to 255.
 
-    // end TODO
-    MotorWriting(adj_L * vL, adj_R * vR);
-}  // tracking
+        // TODO: complete your P/PID tracking code (Done)
+        double powerCorrection = _Kp * error + _Kd * dError;
+        vR = (_Tp + powerCorrection);
+        vL = (_Tp - powerCorrection);
+        lastError = error;
+        // end TODO
+        MotorWriting(adj_L * vL * x, adj_R * vR * x);
+    }
+    else
+        MotorWriting(adj_L * _Tp * x, adj_R * _Tp * x);
+} // tracking
+
+#endif
