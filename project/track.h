@@ -67,8 +67,8 @@ void tracking(int l2, int l1, int m0, int r1, int r2) {
     static double _w0 = 0;  //
     static double _w1 = 1;  //
     static double _w2 = 2;  //
-    static double _Kp = 15;  // p term parameter
-    static double _Kd = 10;  // d term parameter (optional)
+    static double _Kp = 10;  // p term parameter
+    static double _Kd = 5;  // d term parameter (optional)
     //double _Ki;  // i term parameter (optional) (Hint: 不要調太大)
     static double adj_R = 1; 
     static double adj_L = 0.9;  // 馬達轉速修正係數。MotorWriting(_Tp,_Tp)如果歪掉就要用參數修正。

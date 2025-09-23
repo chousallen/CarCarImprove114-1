@@ -21,7 +21,7 @@ void car_front(){
 }
 
 void car_back(){
-    MotorWriting(adj_L*_Tp*x, -adj_R*_Tp*x*1.5);
+    MotorWriting(adj_L*_Tp*x, -adj_R*_Tp*x*1.3);
     // delay(700);
 }
 
@@ -35,7 +35,7 @@ void car_right(){
 void car_left(){
     // MotorWriting(adj_L*_Tp*x, adj_R*_Tp*x);
     // delay(100);
-    MotorWriting(0, adj_R*_Tp*x);
+    MotorWriting(0, adj_R*_Tp*x*1.2);
     // delay(500);
 }
 

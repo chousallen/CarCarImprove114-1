@@ -64,9 +64,9 @@ void FSM::doRoutine()
     } else if (state == STATE_R_TURN) {
         // 0-100ms forward, 100-600ms right turn
         // Serial.println("state rturn");
-        if ((unsigned long)(millis() - enterStateTime) < 100UL) {
+        if ((unsigned long)(millis() - enterStateTime) < 200UL) {
             car_front();
-        } else if ((unsigned long)(millis() - enterStateTime) < 600UL) {
+        } else if ((unsigned long)(millis() - enterStateTime) < 700UL) {
             car_right();
         } else {
             temp_step++;
@@ -76,9 +76,9 @@ void FSM::doRoutine()
     } else if (state == STATE_L_TURN) {
         // 0-100ms forward, 100-600ms left turn
         // Serial.println("state lturn");
-        if ((unsigned long)(millis() - enterStateTime) < 100UL) {
+        if ((unsigned long)(millis() - enterStateTime) < 200UL) {
             car_front();
-        } else if ((unsigned long)(millis() - enterStateTime) < 600UL) {
+        } else if ((unsigned long)(millis() - enterStateTime) < 700UL) {
             car_left();
         } else {
             temp_step++;
@@ -87,7 +87,7 @@ void FSM::doRoutine()
         }
     } else if (state == STATE_U_TURN) {
         // Serial.println("state uturn");
-        if (millis() - enterStateTime < 500UL) {
+        if (millis() - enterStateTime < 570UL) {
             // Serial.println("Car back");
             car_back();
         } else {
