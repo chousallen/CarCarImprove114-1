@@ -2,7 +2,7 @@
 #include "ir.hpp"
 #include <Arduino.h>
 
-uint16_t ir_data[N_IR];
+uint8_t ir_data[N_IR];
 
 FSM::FSM(): state(STATE_NODE)
 {

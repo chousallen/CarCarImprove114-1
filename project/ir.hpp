@@ -4,7 +4,8 @@
 
 // Define the number of IR sensors
 #define N_IR 5
+#define THRESHOLD 400
 
 extern uint8_t ir_pins[N_IR];
 
-void readIR(uint16_t* ir_values);
+void readIR(uint8_t* ir_values);
