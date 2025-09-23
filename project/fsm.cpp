@@ -1,4 +1,8 @@
 #include "fsm.hpp"
+#include "ir.hpp"
+#include <Arduino.h>
+
+uint16_t ir_data[N_IR];
 
 FSM::FSM(): state(STATE_NODE)
 {
@@ -7,6 +11,7 @@ FSM::FSM(): state(STATE_NODE)
 void FSM::doRoutine()
 {
     // Placeholder for FSM routine logic
+    readIR(ir_data);
 }
 
 FSM_State FSM::getState()
