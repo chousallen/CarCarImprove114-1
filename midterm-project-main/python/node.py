@@ -1,3 +1,4 @@
+from asyncio.log import logger
 from enum import IntEnum
 
 
@@ -28,7 +29,8 @@ class Node:
 
     def set_successor(self, successor, direction, length=2):
         self.successors.append((successor, Direction(direction), int(length)))
-        print(f"For Node {self.index}, a successor {self.successors[-1]} is set.")
+        logger.debug(
+            f"For Node {self.index}, a successor {self.successors[-1]} is set.")
         return
 
     def get_direction(self, node):

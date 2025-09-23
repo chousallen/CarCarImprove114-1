@@ -28,8 +28,6 @@ public:
 
   // Optional human-readable tag (e.g., module/component). Max 20 chars stored.
   void setTag(const char *tag);
-  // Set tag with printf-style formatting (no Arduino String needed)
-  void setTagf(const char *fmt, ...);
   const char *tag() const;
 
   // Mirror logs to an additional Stream for local debugging (e.g., Serial)

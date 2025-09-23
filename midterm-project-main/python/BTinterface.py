@@ -26,9 +26,13 @@ class BTInterface:
         self.bt.serial_write_string("s")
 
     def get_UID(self):
-        return self.bt.serial_read_byte()
+        raw = self.bt.serial_read_string().split(':')[-1]
+        return raw
+
     def get_ok(self):
-        return self.bt.serial_read_string()
+        raw = self.bt.serial_read_string().split(':')[-1]
+        return raw
+
     def send_action(self, dirc):
         # TODO : send the action to car
         self.bt.serial_write_string(dirc)

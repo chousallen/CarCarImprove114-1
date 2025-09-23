@@ -156,22 +156,22 @@ void logger::writeFramed(LogLevel level, const char *msg)
   }
 
   _out.print(levelChar);
-  _out.print('|');
+  _out.print(':');
   _out.print(millis());
-  _out.print('|');
+  _out.print(":{");
   percentEncode(_tag, _out);
-  _out.print('|');
+  _out.print("}:");
   percentEncode(msg, _out);
   _out.print('\n');
 
   if (_mirror)
   {
     _mirror->print(levelChar);
-    _mirror->print('|');
+    _mirror->print(':');
     _mirror->print(millis());
-    _mirror->print('|');
+    _mirror->print(":{");
     percentEncode(_tag, *_mirror);
-    _mirror->print('|');
+    _mirror->print("}:");
     percentEncode(msg, *_mirror);
     _mirror->print('\n');
   }

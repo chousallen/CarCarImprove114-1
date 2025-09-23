@@ -18,14 +18,14 @@ class Bluetooth:
     def __init__(self):
         self.serial = Serial()
 
-    def do_connect(self, port: str):
+    def do_connect(self, port: str, baud: int = 9600) -> bool:
         self.serial.close()
         log.info(f"Connecting to {port}...")
         try:
-            self.serial = Serial(port, 9600, timeout=2)
+            self.serial = Serial(port, baud, timeout=2)
             log.info("Success\n")
-        except SerialException:
-            log.warning("Fail to connect\n")
+        except SerialException as e:
+            log.warning(f"Fail to connect\n {e}")
             return False
         return True
 
@@ -45,14 +45,3 @@ class Bluetooth:
             rv = self.serial.readline().decode("utf-8")[:-1]
             return rv
         return ""
-
-    def serial_read_byte(self):
-        sleep(0.05)
-        waiting = self.serial.in_waiting
-        rv = self.serial.read(waiting)
-        if rv:
-            uid = hex(int.from_bytes(rv, byteorder="big", signed=False))
-            self.serial.reset_input_buffer()
-            return uid
-        else:
-            return 0
