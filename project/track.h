@@ -40,7 +40,7 @@ void MotorWriting(double vL, double vR) {
         digitalWrite(MotorL_I2, LOW);
         vL = -vL; 
     }
-    else if(vL >= 0){
+    else{
         digitalWrite(MotorL_I1, LOW);
         digitalWrite(MotorL_I2, HIGH);
     }
@@ -59,9 +59,9 @@ void tracking(int l2, int l1, int m0, int r1, int r2) {
     // TODO: find your own parameters!(Done)
     double _w0 = 0;  //
     double _w1 = 1;  //
-    double _w2 = 4;  //
-    double _Kp = 45;  // p term parameter
-    double _Kd = 25;  // d term parameter (optional)
+    double _w2 = 2;  //
+    double _Kp = 15;  // p term parameter
+    double _Kd = 10;  // d term parameter (optional)
     //double _Ki;  // i term parameter (optional) (Hint: 不要調太大)
     double adj_R = 1, adj_L = 0.9;  // 馬達轉速修正係數。MotorWriting(_Tp,_Tp)如果歪掉就要用參數修正。
     double x = 2;

@@ -17,31 +17,33 @@ double adj_R = 1, adj_L = 0.9;  //motor speed correction coefficient
 
 void car_front(){
     MotorWriting(adj_L*_Tp*x, adj_R*_Tp*x);
-    delay(1000/x);
+    delay(700);
 }
 
 void car_back(){
     MotorWriting(adj_L*_Tp*x, -adj_R*_Tp*x);
-    delay(1400/x);
+    delay(700);
 }
 
 void car_right(){
     MotorWriting(adj_L*_Tp * x,adj_R*_Tp*x);
-    delay(600/x);
+    delay(100);
     MotorWriting(adj_L*_Tp*x,0);
-    delay(1300/x);
+    delay(500);
 }
 
 void car_left(){
     MotorWriting(adj_L*_Tp*x, adj_R*_Tp*x);
-    delay(700/x);
-    MotorWriting(0, adj_R*_Tp*1.2*x);
-    delay(1100/x);
+    delay(100);
+    MotorWriting(0, adj_R*_Tp*x);
+    delay(500);
 }
 
 void car_start(){
-    MotorWriting(adj_L*_Tp*x, adj_R*_Tp*x);
-    delay(800);
+    MotorWriting(adj_L*_Tp*x*0.1, adj_R*_Tp*x*0.1);
+    delay(200);
+    MotorWriting(adj_L*_Tp*x*0.5, adj_R*_Tp*x*0.5);
+    delay(500);
 }
 
 void car_end(){

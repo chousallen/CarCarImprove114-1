@@ -4,7 +4,7 @@
 
 // Define the number of IR sensors
 #define N_IR 5
-#define THRESHOLD 400
+#define THRESHOLD 200
 
 extern uint8_t ir_pins[N_IR];
 
