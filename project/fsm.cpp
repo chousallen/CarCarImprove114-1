@@ -19,111 +19,98 @@ void FSM::doRoutine()
 {
     // Placeholder for FSM routine logic
     readIR(ir_data);
-    switch(state) {
-        case STATE_NODE:
-            // Logic for NODE state: run forward for 700 ms after entering
-            Serial.println("state node");
-            if ((unsigned long)(millis() - enterStateTime) < 700UL) {
-                car_front();
+    Serial.print("Current state value: ");
+    Serial.println((int)state);
+    
+    if (state == STATE_NODE) {
+        // Logic for NODE state: run forward for 700 ms after entering
+        Serial.println("state node");
+        if ((unsigned long)(millis() - enterStateTime) < 700UL) {
+            car_front();
+        } else {
+            temp_step++;
+            exitState();
+            enterState(STATE_STRAIGHT);
+        }
+    } else if (state == STATE_STRAIGHT) {
+        Serial.println("state straight");
+        int sum = ir_data[0] + ir_data[1] + ir_data[2] + ir_data[3] + ir_data[4];
+        if(sum == N_IR)
+        {
+            exitState();
+            if (temp_action[temp_step] == 'f') {
+                enterState(STATE_NODE);
+            } else if (temp_action[temp_step] == 'r') {
+                enterState(STATE_R_TURN);
+            } else if (temp_action[temp_step] == 'l') {
+                enterState(STATE_L_TURN);
+            } else if (temp_action[temp_step] == 'b') {
+                enterState(STATE_U_TURN);
+            } else if (temp_action[temp_step] == 's') {
+                enterState(STATE_STOP);
+            } else if (temp_action[temp_step] == 'g') {
+                enterState(STATE_START);
             } else {
-                temp_step++;
-                exitState();
+                Serial.println(temp_action[temp_step]);
                 enterState(STATE_STRAIGHT);
             }
-            break;
-        case STATE_STRAIGHT:
-            Serial.println("state straight");
-            int sum = ir_data[0] + ir_data[1] + ir_data[2] + ir_data[3] + ir_data[4];
-            if(sum == N_IR)
-            {
-                exitState();
-                switch (temp_action[temp_step]) {
-                    case 'f':
-                        enterState(STATE_NODE);
-                        break;
-                    case 'r':
-                        enterState(STATE_R_TURN);
-                        break;
-                    case 'l':
-                        enterState(STATE_L_TURN);
-                        break;
-                    case 'b':
-                        enterState(STATE_U_TURN);
-                        break;
-                    case 's':
-                        enterState(STATE_STOP);
-                        break;
-                    case 'g':
-                        enterState(STATE_START);
-                        break;
-                    default:
-                        Serial.println(temp_action[temp_step]);
-                        enterState(STATE_STRAIGHT);
-                        break;
-                }
-            }
-            else {
-                tracking(ir_data[0], ir_data[1], ir_data[2], ir_data[3], ir_data[4]);
-                // exitState();
-                // enterState(STATE_STRAIGHT);
-            }
-            // Logic for LINE_FOLLOW state
-            break;
-        case STATE_R_TURN:
-            // 0-100ms forward, 100-600ms right turn
-            Serial.println("state rturn");
-            if ((unsigned long)(millis() - enterStateTime) < 100UL) {
-                car_front();
-            } else if ((unsigned long)(millis() - enterStateTime) < 600UL) {
-                car_right();
-            } else {
-                temp_step++;
-                exitState();
-                enterState(STATE_STRAIGHT);
-            }
-            break;
-        case STATE_L_TURN:
-            // 0-100ms forward, 100-600ms left turn
-            Serial.println("state lturn");
-            if ((unsigned long)(millis() - enterStateTime) < 100UL) {
-                car_front();
-            } else if ((unsigned long)(millis() - enterStateTime) < 600UL) {
-                car_left();
-            } else {
-                temp_step++;
-                exitState();
-                enterState(STATE_STRAIGHT);
-            }
-            break;
-        case STATE_U_TURN:
-            Serial.println("state uturn");
-            if ((unsigned long)(millis() - enterStateTime) < 700UL) {
-                Serial.println("Car back");
-                car_back();
-            } else {
-                Serial.println("exit u turn");
-                temp_step++;
-                exitState();
-                enterState(STATE_STRAIGHT);
-            }
-            break;
-        case STATE_START:
+        }
+        else {
+            tracking(ir_data[0], ir_data[1], ir_data[2], ir_data[3], ir_data[4]);
+            // exitState();
+            // enterState(STATE_STRAIGHT);
+        }
+        // Logic for LINE_FOLLOW state
+    } else if (state == STATE_R_TURN) {
+        // 0-100ms forward, 100-600ms right turn
+        Serial.println("state rturn");
+        if ((unsigned long)(millis() - enterStateTime) < 100UL) {
+            car_front();
+        } else if ((unsigned long)(millis() - enterStateTime) < 600UL) {
+            car_right();
+        } else {
+            temp_step++;
+            exitState();
+            enterState(STATE_STRAIGHT);
+        }
+    } else if (state == STATE_L_TURN) {
+        // 0-100ms forward, 100-600ms left turn
+        Serial.println("state lturn");
+        if ((unsigned long)(millis() - enterStateTime) < 100UL) {
+            car_front();
+        } else if ((unsigned long)(millis() - enterStateTime) < 600UL) {
+            car_left();
+        } else {
+            temp_step++;
+            exitState();
+            enterState(STATE_STRAIGHT);
+        }
+    } else if (state == STATE_U_TURN) {
+        Serial.println("state uturn");
+        if (millis() - enterStateTime < 700UL) {
+            Serial.println("Car back");
+            car_back();
+        } else {
+            Serial.println("exit u turn");
+            temp_step++;
+            exitState();
+            enterState(STATE_STRAIGHT);
+        }
+    } else if (state == STATE_START) {
         Serial.println("state start");
-            if ((unsigned long)(millis() - enterStateTime) < 500UL) {
-                car_back();
-            } else {
-                temp_step++;
-                exitState();
-                enterState(STATE_STRAIGHT);
-            }
-            break;
-        case STATE_STOP:
+        if ((unsigned long)(millis() - enterStateTime) < 500UL) {
+            car_back();
+        } else {
+            temp_step++;
+            exitState();
+            enterState(STATE_STRAIGHT);
+        }
+    } else if (state == STATE_STOP) {
         Serial.println("state stop");
-            car_end();
-            break;
-        default:
-            // Handle unexpected state
-            break;
+        car_end();
+    } else {
+        // Handle unexpected state
+        Serial.println("Unknown state!");
     }
 }
 
@@ -141,7 +128,8 @@ void FSM::enterState(FSM_State newState)
 {
     // Placeholder for enter state logic
     state = newState;
-    Serial.println(newState);
+    Serial.print("Entering state: ");
+    Serial.println((int)newState);
     // reset state timer on enter
     enterStateTime = millis();
 }
