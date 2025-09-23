@@ -12,6 +12,11 @@ void FSM::doRoutine()
 {
     // Placeholder for FSM routine logic
     readIR(ir_data);
+    for (int i = 0; i < N_IR; ++i) {
+        Serial.print(ir_data[i]);
+        Serial.print(", ");
+    }
+    Serial.println();
 }
 
 FSM_State FSM::getState()
