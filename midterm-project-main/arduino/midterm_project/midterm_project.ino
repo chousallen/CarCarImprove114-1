@@ -22,7 +22,7 @@
 #define SS_PIN 53                  // 晶片選擇腳位
 #define CTL_LOOP_PERIOD 10        // 100 Hz
 uint64_t poweron_time;
-logger btlog(Serial, "car");
+logger btlog(Serial3, "car");
 MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
 /*===========================define pin & create module object===========================*/
 
@@ -33,7 +33,6 @@ void setup()
     Serial3.begin(9600);
     // Serial window
     Serial.begin(115200);
-    Serial.println("Start!");
     // RFID initial
     SPI.begin();
     mfrc522.PCD_Init();
@@ -56,15 +55,7 @@ void loop()
         mfrc522.PICC_ReadCardSerial();
         mfrc522.PICC_HaltA();
         int n = mfrc522.uid.size;
-        mfrc522.uid.uidByte[n] = 0;
-        char tmp[16] = "tmp";
-        // sprintf(tmp, "%s", mfrc522.uid.uidByte);
-        for(int i=0; i<n; i++)
-        {
-            Serial.print(mfrc522.uid.uidByte[i]);
-        }
-        Serial.println();
-		btlog.debug("%s", mfrc522.uid.uidByte);
+		btlog.debug("uid: %x%x%x%x", mfrc522.uid.uidByte[0], mfrc522.uid.uidByte[1], mfrc522.uid.uidByte[2], mfrc522.uid.uidByte[3]);
 	}
     if (millis() - poweron_time >= CTL_LOOP_PERIOD)
     {

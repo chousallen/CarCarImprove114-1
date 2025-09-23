@@ -7,8 +7,8 @@
 
 uint8_t ir_data[N_IR];
 
-char temp_action[] = "grbrbrbrblblblbls";
-int temp_step = 0;
+char action[128];
+int step = 0, n_action = 0;
 logger fsm_logger(Serial, "fsm");
 
 FSM::FSM(): state(STATE_NODE)
@@ -18,9 +18,21 @@ FSM::FSM(): state(STATE_NODE)
 void FSM::doRoutine()
 {
     // Placeholder for FSM routine logic
+    if(Serial3.available())
+    {
+        action[n_action] = Serial3.read();
+        fsm_logger.info("%c got", action[n_action]);
+        if(action[n_action] == 10)
+            return;
+        n_action++;
+    }
+    if(n_action == step)
+    {
+        enterStateTime = millis();
+        return;}
     readIR(ir_data);
-    // Serial.print("Current state value: ");
-    // Serial.println((int)state);
+
+    // fsm_logger.info("n_action: %d, step: %d, curr_state: %d", n_action, step, state);
     
     if (state == STATE_NODE) {
         // Logic for NODE state: run forward for 700 ms after entering
@@ -28,7 +40,7 @@ void FSM::doRoutine()
         if ((unsigned long)(millis() - enterStateTime) < 700UL) {
             car_front();
         } else {
-            temp_step++;
+            step++;
             exitState();
             enterState(STATE_STRAIGHT);
         }
@@ -38,20 +50,19 @@ void FSM::doRoutine()
         if(sum >= 4)
         {
             exitState();
-            if (temp_action[temp_step] == 'f') {
+            if (action[step] == 'f') {
                 enterState(STATE_NODE);
-            } else if (temp_action[temp_step] == 'r') {
+            } else if (action[step] == 'r') {
                 enterState(STATE_R_TURN);
-            } else if (temp_action[temp_step] == 'l') {
+            } else if (action[step] == 'l') {
                 enterState(STATE_L_TURN);
-            } else if (temp_action[temp_step] == 'b') {
+            } else if (action[step] == 'b') {
                 enterState(STATE_U_TURN);
-            } else if (temp_action[temp_step] == 's') {
+            } else if (action[step] == 's') {
                 enterState(STATE_STOP);
-            } else if (temp_action[temp_step] == 'g') {
+            } else if (action[step] == 'g') {
                 enterState(STATE_START);
             } else {
-                Serial.println(temp_action[temp_step]);
                 enterState(STATE_STRAIGHT);
             }
         }
@@ -69,7 +80,7 @@ void FSM::doRoutine()
         } else if ((unsigned long)(millis() - enterStateTime) < 700UL) {
             car_right();
         } else {
-            temp_step++;
+            step++;
             exitState();
             enterState(STATE_STRAIGHT);
         }
@@ -78,10 +89,10 @@ void FSM::doRoutine()
         // Serial.println("state lturn");
         if ((unsigned long)(millis() - enterStateTime) < 200UL) {
             car_front();
-        } else if ((unsigned long)(millis() - enterStateTime) < 700UL) {
+        } else if ((unsigned long)(millis() - enterStateTime) < 600UL) {
             car_left();
         } else {
-            temp_step++;
+            step++;
             exitState();
             enterState(STATE_STRAIGHT);
         }
@@ -92,7 +103,7 @@ void FSM::doRoutine()
             car_back();
         } else {
             // Serial.println("exit u turn");
-            temp_step++;
+            step++;
             exitState();
             enterState(STATE_STRAIGHT);
         }
@@ -101,13 +112,29 @@ void FSM::doRoutine()
         if ((unsigned long)(millis() - enterStateTime) < 500UL) {
             car_back();
         } else {
-            temp_step++;
+            step++;
             exitState();
             enterState(STATE_STRAIGHT);
         }
     } else if (state == STATE_STOP) {
-        // Serial.println("state stop");
         car_end();
+        step++;
+        exitState();
+        if (action[step] == 'f') {
+            enterState(STATE_NODE);
+        } else if (action[step] == 'r') {
+            enterState(STATE_R_TURN);
+        } else if (action[step] == 'l') {
+            enterState(STATE_L_TURN);
+        } else if (action[step] == 'b') {
+            enterState(STATE_U_TURN);
+        } else if (action[step] == 's') {
+            enterState(STATE_STOP);
+        } else if (action[step] == 'g') {
+            enterState(STATE_START);
+        } else {
+            enterState(STATE_STRAIGHT);
+        }
     } else {
         // Handle unexpected state
         // Serial.println("Unknown state!");
