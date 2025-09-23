@@ -8,21 +8,22 @@
 
 #define DEBUG // debug flag
 
-#include "RFID.h"
-#include "bluetooth.h"
+// #include "bluetooth.h"
 #include "ir.hpp"
 #include "fsm.hpp"
 
 // for bluetooth logger
 #include "logger.h"
+#include <SPI.h>
+#include <MFRC522.h>
 
 // RFID, 請按照自己車上的接線寫入腳位
 #define RST_PIN 49                 // 讀卡機的重置腳位
 #define SS_PIN 53                  // 晶片選擇腳位
 #define CTL_LOOP_PERIOD 10        // 100 Hz
-RFID RFID(SS_PIN, RST_PIN); // 建立MFRC522物件
 uint64_t poweron_time;
 logger btlog(Serial, "car");
+MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
 /*===========================define pin & create module object===========================*/
 
 /*============setup============*/
@@ -35,6 +36,8 @@ void setup()
     Serial.println("Start!");
     // RFID initial
     SPI.begin();
+    mfrc522.PCD_Init();
+    delay(4); // Optional delay. Some board do need more time after init to be ready
 
     btlog.setLevel(LOG_DEBUG);
     btlog.setMirror(&Serial);
@@ -49,10 +52,20 @@ FSM fsm;
 /*===========================define function===========================*/
 void loop()
 {
-    if(RFID.detectCard())
-    {
-        Serial.println(RFID.getUid());
-    }
+    if (mfrc522.PICC_IsNewCardPresent()) {
+        mfrc522.PICC_ReadCardSerial();
+        mfrc522.PICC_HaltA();
+        int n = mfrc522.uid.size;
+        mfrc522.uid.uidByte[n] = 0;
+        char tmp[16] = "tmp";
+        // sprintf(tmp, "%s", mfrc522.uid.uidByte);
+        for(int i=0; i<n; i++)
+        {
+            Serial.print(mfrc522.uid.uidByte[i]);
+        }
+        Serial.println();
+		btlog.debug("%s", mfrc522.uid.uidByte);
+	}
     if (millis() - poweron_time >= CTL_LOOP_PERIOD)
     {
         poweron_time = millis();

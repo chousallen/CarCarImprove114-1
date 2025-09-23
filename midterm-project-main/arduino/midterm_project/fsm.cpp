@@ -2,14 +2,14 @@
 #include "ir.hpp"
 #include "node.h"
 #include "track.h"
+#include "logger.h"
 #include <Arduino.h>
 
 uint8_t ir_data[N_IR];
 
-//temp
 char temp_action[] = "grbrbrbrblblblbls";
 int temp_step = 0;
-//temp
+logger fsm_logger(Serial, "fsm");
 
 FSM::FSM(): state(STATE_NODE)
 {
@@ -128,8 +128,7 @@ void FSM::enterState(FSM_State newState)
 {
     // Placeholder for enter state logic
     state = newState;
-    Serial.print("Entering state: ");
-    Serial.println((int)newState);
+    fsm_logger.info("Enter state: %d", newState);
     // reset state timer on enter
     enterStateTime = millis();
 }
