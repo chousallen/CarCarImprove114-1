@@ -17,13 +17,19 @@ void FSM::doRoutine()
             // Logic for NODE state
             break;
         case STATE_STRAIGHT:
+            int sum = ir_data[0] + ir_data[1] + ir_data[2] + ir_data[3] + ir_data[4];
+            if(sum == N_IR)
+            {
+                exitState();
+                enterState(STATE_R_TURN);
+            }
             // Logic for LINE_FOLLOW state
             break;
         case STATE_R_TURN:
-            // Logic for OBSTACLE_AVOIDANCE state
+            // Logic for R_TURN state
             break;
         case STATE_L_TURN:
-            // Logic for STOP state
+            // Logic for L_TURN state
             break;
         default:
             // Handle unexpected state
@@ -44,4 +50,6 @@ void FSM::exitState()
 void FSM::enterState(FSM_State newState)
 {
     // Placeholder for enter state logic
+
+    state = newState;
 }
