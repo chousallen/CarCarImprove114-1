@@ -3,13 +3,11 @@
 ## System Overview
 
 The system consists of three main parts:
-
 1. Path Planning & Command Generation
 2. Bluetooth Communication
 3. RFID Detection & Scoring
 
 ### Current Implementation Flow:
-
 ```
 [Path Planning] -> [Bluetooth Commands] -> [Car Movement] -> [RFID Detection] -> [Score Update]
    (maze.py)         (BTinterface.py)      (Arduino)         (Arduino)          (gui_scoreboard.py)
@@ -18,9 +16,7 @@ The system consists of three main parts:
 ## Bluetooth Integration Points
 
 ### 1. BTinterface.py
-
 This is the main file you need to modify. Current implementation:
-
 ```python
 def send_action(self, dirc):
     # Sends single character commands:
@@ -43,13 +39,11 @@ def get_UID(self):
 ### Required Modifications:
 
 1. **Command Protocol**:
-
    - Current: Single character commands ('f', 'b', 'r', 'l', 's')
    - You can modify `send_action()` if you need a different command format
    - Make sure to update Arduino code accordingly
 
 2. **Movement Confirmation**:
-
    - Current: Expects exactly "ok" string
    - Modify `get_ok()` if you need a different confirmation format
    - The system waits for this confirmation before sending next command
@@ -62,14 +56,12 @@ def get_UID(self):
 ## RFID Integration
 
 ### Current RFID Flow:
-
 1. Car detects RFID tag
 2. Arduino sends UID through Bluetooth
 3. `get_UID()` receives the UID
 4. System updates score via `scoreboard.add_UID(uid)`
 
 ### RFID Format Requirements:
-
 - Current format: 8-character hex string (e.g., "10BA617E")
 - If you need to change format, modify:
   1. `BT.py`: `serial_read_byte()` function
@@ -78,17 +70,14 @@ def get_UID(self):
 ## Testing Your Changes
 
 1. Use `test.py` to verify your modifications:
-
 ```bash
 python test.py
 ```
-
 - Shows complete command sequence
 - Simulates Bluetooth communication
 - Displays RFID detection and scoring
 
 2. Test Bluetooth commands individually:
-
 ```python
 from BTinterface import BTInterface
 bt = BTInterface(port="COM3")  # Use your port
@@ -99,12 +88,10 @@ response = bt.get_ok()  # Check response
 ## Important Files and Functions
 
 1. **BTinterface.py**
-
    - Main Bluetooth communication interface
    - Key functions to modify: `send_action()`, `get_ok()`, `get_UID()`
 
 2. **BT.py**
-
    - Low-level Bluetooth operations
    - Modify if you need to change communication protocol
 
@@ -113,7 +100,6 @@ response = bt.get_ok()  # Check response
    - `add_UID()`: Processes RFID and updates score
 
 ## Command Sequence Example
-
 ```
 Starting at Node 1 (facing LEFT):
 1. 'f' -> Move to Node 7
@@ -126,12 +112,10 @@ Starting at Node 1 (facing LEFT):
 ## Notes for Arduino Implementation
 
 1. **Movement Commands**:
-
    - Must send "ok" after completing each movement
    - Don't send next RFID until current movement is complete
 
 2. **RFID Detection**:
-
    - Send UID immediately when detected
    - Format: 8-character hex string
    - Send "0" or empty if no RFID
