@@ -67,7 +67,7 @@ class PathPlanner:
             return []
             
         actions = []
-        current_dir = Direction.WEST  # Start facing left
+        current_dir = Direction.NORTH  # Start facing up
         
         for i in range(len(path) - 1):
             current = path[i]

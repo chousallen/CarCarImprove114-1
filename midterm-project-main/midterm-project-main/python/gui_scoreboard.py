@@ -241,22 +241,21 @@ class ScoreboardGUI(tk.Tk):
         return distance
 
     def calculate_score(self, uid: str) -> int:
-        """Calculate score based on Manhattan distance or fixed score for unknown UIDs"""
-        if uid in self.uid_positions:
-            position = self.uid_positions[uid]
-            distance = self.calculate_manhattan_distance(position)
-            return distance * 10
-        else:
-            # Unknown UID gets fixed score
-            return 50
+        """Calculate score - always return 50 points for any valid UID"""
+        # Always return fixed 50 points regardless of UID type or position
+        return 50
 
     def add_UID(self, uid: str) -> Tuple[int, float]:
         """Process a new UID and return (score, remaining_time)"""
         if not uid or uid == "0":
             return 0, self._get_remaining_time()
             
-        # Format UID
-        uid = uid.replace("0x", "").upper().zfill(8)
+        # Format UID - 保持原格式，只移除0x前綴並轉大寫
+        uid = uid.replace("0x", "").upper()
+        
+        # 只對純HEX格式補足到8位，TEST格式保持原樣
+        if not uid.startswith("TEST") and all(c in '0123456789ABCDEF' for c in uid):
+            uid = uid.zfill(8)
         
         # Check if already visited
         if uid in self.visited_uids:

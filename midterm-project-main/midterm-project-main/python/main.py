@@ -1,10 +1,10 @@
 import logging
 import time
 import argparse
+import threading
 from typing import Optional, List, Tuple
 from maze import Maze, Action, Direction
 from BTinterface import BTInterface
-from gui_scoreboard import ScoreboardGUI
 from path_planner import PathPlanner
 
 logging.basicConfig(
@@ -26,9 +26,13 @@ class MazeCar:
         self.bt = BTInterface(port=bt_port)
         self.current_node = start_node
         self.current_direction = Direction.NORTH
-        self.scoreboard = ScoreboardGUI(start_position=start_node, 
-                                      game_duration=game_duration)
-        self.scoreboard.update()
+        
+        # Simple scoreboard variables
+        self.total_score = 0
+        self.visited_uids = set()
+        self.start_time = time.time()
+        self.game_duration = game_duration
+        self.score_display_active = True
         
         # Initialize path planner
         self.planner = PathPlanner(self.maze)
@@ -41,6 +45,21 @@ class MazeCar:
         
         log.info(f"Planned path: {self.planned_path}")
         log.info(f"Action sequence: {[action.name for action in self.action_sequence]}")
+        
+        # Start score display thread
+        self._start_score_display_thread()
+
+    def _start_score_display_thread(self):
+        """Start background thread to display score every 5 seconds"""
+        def score_display_loop():
+            while self.score_display_active:
+                time.sleep(5)
+                if self.score_display_active:
+                    remaining_time = max(0, self.game_duration - (time.time() - self.start_time))
+                    print(f"=== SCORE UPDATE === Total Score: {self.total_score} points | Time Left: {remaining_time:.1f}s ===")
+        
+        score_thread = threading.Thread(target=score_display_loop, daemon=True)
+        score_thread.start()
 
     def _load_uid_mapping(self) -> dict:
         """Load UID to node mapping from fakeUID.csv"""
@@ -87,79 +106,188 @@ class MazeCar:
     def check_for_uid(self):
         """Check for UID and update score if found"""
         uid = self.bt.get_UID()
-        if uid and uid != "0":
-            # If UID exists in mapping, update current position
-            if uid in self.uid_to_node:
-                self.current_node = self.uid_to_node[uid]
-                log.info(f"Found UID {uid} at node {self.current_node}")
+        if uid and uid != "0" and uid != 0:
+            # Convert UID to string and process
+            uid_str = str(uid)
+            log.debug(f"Received raw data: {uid_str}")
             
-            # Process UID for scoring
-            score, time_left = self.scoreboard.add_UID(uid)
-            log.info(f"Scored {score} points, Time left: {time_left:.1f}s")
-            return time_left <= 0  # Return True if time's up
+            # Split string by spaces and check each part
+            parts = uid_str.split()
+            valid_uid_found = False
+            
+            for part in parts:
+                if not part.strip():  # Skip empty parts
+                    continue
+                    
+                # Decode hex string if needed and format UID for this part
+                decoded_uid = self._decode_hex_string(part.strip())
+                formatted_uid = self._format_uid(decoded_uid)
+                
+                if self._is_valid_uid(formatted_uid):
+                    # Show in terminal
+                    print(f"Valid UID received: {formatted_uid}")
+                    log.info(f"Valid UID detected in part: {formatted_uid}")
+                    
+                    # Update score with fixed 50 points (avoid duplicates)
+                    if formatted_uid not in self.visited_uids:
+                        self.total_score += 50
+                        self.visited_uids.add(formatted_uid)
+                        print(f"Score updated: +50 points, Total: {self.total_score}")
+                        log.info(f"UID {formatted_uid} scored 50 points, total: {self.total_score}")
+                    else:
+                        print(f"UID {formatted_uid} already visited, no points added")
+                    
+                    valid_uid_found = True
+                    
+                    # Check if time is up
+                    remaining_time = max(0, self.game_duration - (time.time() - self.start_time))
+                    if remaining_time <= 0:
+                        return True
+                else:
+                    # This part is not UID format, output to terminal
+                    print(f"Received non-UID data part: {part}")
+            
+            # If no valid UID found in any part, print the whole string
+            if not valid_uid_found:
+                print(f"Received non-UID data: {uid_str}")
+                
+        return False
+    
+    def _decode_hex_string(self, data_str: str) -> str:
+        """Decode hex string to actual hex value"""
+        try:
+            # If data is already in hex format (0x...), return as is
+            if data_str.startswith('0x'):
+                return data_str
+                
+            # If data looks like hex string representation, try to decode
+            clean_data = data_str.strip()
+            
+            # Check if it's a hex string like "41424344" (ABCD in hex)
+            if len(clean_data) % 2 == 0 and all(c in '0123456789ABCDEFabcdef' for c in clean_data):
+                try:
+                    # Convert hex string to actual value
+                    hex_bytes = bytes.fromhex(clean_data)
+                    # Convert back to hex representation
+                    return '0x' + clean_data.upper()
+                except ValueError:
+                    pass
+            
+            # Try to interpret as hex string encoding ASCII
+            try:
+                if all(c in '0123456789ABCDEFabcdef' for c in clean_data):
+                    # Treat as direct hex representation
+                    return '0x' + clean_data.upper()
+            except:
+                pass
+                
+            # Return original if cannot decode
+            return data_str
+            
+        except Exception as e:
+            log.debug(f"Error decoding hex string {data_str}: {e}")
+            return data_str
+    
+    def _format_uid(self, uid_str: str) -> str:
+        """Format UID to standard format"""
+        # Remove 0x prefix
+        clean_uid = uid_str.replace("0x", "").strip().upper()
+        
+        # If HEX format, pad to 8 digits
+        if all(c in '0123456789ABCDEF' for c in clean_uid):
+            return clean_uid.zfill(8)
+        
+        # If TEST format, keep as is
+        return clean_uid
+    
+    def _is_valid_uid(self, uid_str: str) -> bool:
+        """Check if UID format is valid"""
+        # Remove possible 0x prefix
+        clean_uid = uid_str.replace("0x", "").strip().upper()
+        
+        # Check if TEST format
+        if clean_uid.startswith("TEST") and len(clean_uid) >= 8:
+            return True
+        
+        # Check if HEX format (4-8 hex digits)
+        if len(clean_uid) >= 4 and len(clean_uid) <= 8 and all(c in '0123456789ABCDEF' for c in clean_uid):
+            return True
+            
+        # Check if pure number format (some RFID may return this)
+        if clean_uid.isdigit() and len(clean_uid) >= 4:
+            return True
+            
         return False
 
     def run(self):
-        """Main control loop"""
+        """Main control loop - Auto execution mode"""
+        
+        # Print complete command string first, before any other output
+        # Build the actual command string that will be sent (skipping first 'f' if present)
+        actual_commands = []
+        for i, action in enumerate(self.action_sequence):
+            cmd = self._action_to_cmd(action)
+            if i == 0 and cmd == 'f':
+                continue  # Skip first 'f'
+            actual_commands.append(cmd)
+        
+        command_string = 'g' + ''.join(actual_commands)
+        print(f"=== ACTUAL COMMAND STRING === {command_string} ===")
+        
         log.info("Starting maze exploration...")
         self.bt.start()
         
         try:
-            while self.current_action_index < len(self.action_sequence):
-                # Check for UID before each action
+            # Send all commands without waiting for response
+            log.info(f"Preparing to send {len(self.action_sequence)} commands")
+            
+            for i, action in enumerate(self.action_sequence):
+                # Check if time is up
                 if self.check_for_uid():
                     log.info("Time's up!")
                     break
                 
-                # Get next action
-                action = self.action_sequence[self.current_action_index]
+                # Skip the first 'f' command (index 0 and cmd is 'f')
                 cmd = self._action_to_cmd(action)
+                if i == 0 and cmd == 'f':
+                    log.info(f"[{i+1}/{len(self.action_sequence)}] Skipping first 'f' command: {action.name} ({cmd})")
+                    continue
                 
-                # Send command
-                log.info(f"Sending command: {action.name}")
+                # Send command directly
+                log.info(f"[{i+1}/{len(self.action_sequence)}] Sending command: {action.name} ({cmd})")
                 self.bt.send_action(cmd)
                 
-                # Wait for response while checking for UID
-                max_wait = 10  # Maximum wait time in seconds
-                wait_start = time.time()
-                response = None
-                
-                while time.time() - wait_start < max_wait:
-                    # Check for UID while waiting
-                    if self.check_for_uid():
-                        log.info("Time's up!")
-                        return
-                        
-                    # Check for OK response
-                    response = self.bt.get_ok()
-                    if response == "ok":
-                        break
-                    time.sleep(0.1)
-                
-                if response != "ok":
-                    log.error(f"No response or unexpected response: {response}")
-                    break
-                
-                # Update state
+                # Update state (without waiting for response)
                 self._update_direction(action)
-                if self.current_action_index + 1 < len(self.planned_path):
-                    self.current_node = self.planned_path[self.current_action_index + 1]
-                log.info(f"Moved to node {self.current_node}")
+                if i + 1 < len(self.planned_path):
+                    self.current_node = self.planned_path[i + 1]
+                    log.info(f"Moving to node {self.current_node}")
                 
-                self.current_action_index += 1
-                time.sleep(0.1)  # Small delay between actions
+                # Very short delay to avoid sending commands too fast
+                time.sleep(0.05)
+            
+            log.info("All commands sent successfully!")
+            
+            # Continue listening for UID until game ends
+            log.info("Continuously listening for UID...")
+            while True:
+                if self.check_for_uid():
+                    log.info("Game time finished!")
+                    break
+                time.sleep(0.1)
                 
         except KeyboardInterrupt:
-            log.info("Exploration interrupted by user")
+            log.info("Program interrupted by user")
         finally:
+            self.score_display_active = False  # Stop score display thread
             self.bt.end_process()
-            final_score = self.scoreboard.get_current_score()
-            log.info(f"Final score: {final_score}")
+            print(f"=== GAME ENDED === Final Score: {self.total_score} points ===")
+            log.info(f"Final score: {self.total_score}")
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Maze Explorer Control Program')
-    parser.add_argument('--node', type=int, default=1,
-                      help='Starting node number (default: 1)')
+    parser.add_argument('--node', type=int, default=24,
+                      help='Starting node number (default: 24)')
     parser.add_argument('--time', type=int, default=600,
                       help='Game duration in seconds (default: 600)')
     parser.add_argument('--port', type=str, default=None,

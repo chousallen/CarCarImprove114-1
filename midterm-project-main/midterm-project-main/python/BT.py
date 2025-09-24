@@ -51,6 +51,17 @@ class Bluetooth:
         waiting = self.serial.in_waiting
         rv = self.serial.read(waiting)
         if rv:
+            # Check if received data is string hex format
+            try:
+                # Try to decode as string first
+                hex_string = rv.decode('utf-8').strip()
+                if hex_string:
+                    # If it looks like hex string, return it directly
+                    return hex_string
+            except:
+                pass
+            
+            # Fallback to original byte processing
             uid = hex(int.from_bytes(rv, byteorder="big", signed=False))
             self.serial.reset_input_buffer()
             return uid
